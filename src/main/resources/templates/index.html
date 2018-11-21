@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link th:href="@{bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+    <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <td>ID</td>
+            <td>NAME</td>
+            <td>TEL</td>
+            <td colspan="2">操作</td>
+        </tr>
+        </thead>
+        <tbody id="here">
+        <tr th:each=" contact : ${contactsList}">
+            <td th:text="${contact.id}"></td>
+            <td th:text="${contact.name}"></td>
+            <td th:text="${contact.tel}"></td>
+            <td th:data-id="${contact.id}" class="del">删除</td>
+            <td th:data-ID="${contact.id}" th:data-NAME="${contact.name}" th:data-TEL="${contact.tel}" class="up">修改
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <!-- Large modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-modal-lg">添加</button>
+    <div class="modal fade bs-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="padding: 45px;">
+                <div>
+                    <div class="form-group">
+                        <label for="name">姓名</label>
+                        <input type="text" class="form-control" id="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="tel">电话</label>
+                        <input type="tel" class="form-control" id="tel">
+                    </div>
+                    <button class="btn btn-default" id="submit">submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script th:src="@{jquery/jquery-3.3.1.min.js}"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script th:src="@{bootstrap/js/bootstrap.min.js}"></script>
+<script>
+    'use strict';
+
+    var ID;
+    var isAdd = false;
+    var $modal = $('.bs-modal-lg');
+
+    $(function () {
+        regEvent();
+    });
+
+    function regEvent(){
+        $modal.on('hide.bs.modal', function () {
+            $("#name").val("");
+            $("#tel").val("");
+        });
+
+        $modal.on('shown.bs.modal', function () {
+            isAdd = !($("#name").val() !== "" && $("#tel").val() !== "");
+        });
+        $(".del").unbind();
+        $(".del").click(function () {
+            console.log(1);
+            var data = $(this).data("id");
+            $.ajax({
+                type: "DELETE",
+                url: "/contact/" + data,
+                success: function () {
+                    load();
+                },
+                statusCode: {
+                    404: function () {
+                        alert('id not found');
+                    }
+                }
+            });
+        });
+        $(".up").unbind();
+        $(".up").click(function () {
+            ID = $(this).data("id");
+            $("#name").val($(this).data("name"));
+            $("#tel").val($(this).data("tel"));
+            $('.bs-modal-lg').modal('show');
+        });
+        $("#submit").unbind();
+        $("#submit").click(function () {
+            if (isAdd) {
+                add();
+                return;
+            }
+            up();
+        });
+    }
+
+    function load() {
+        $('.bs-modal-lg').modal('hide');
+        $.get("/contacts", function (data) {
+            var $here = $("#here");
+            $here.empty();
+            $.each(data, function (i, e) {
+                $here.append("<tr><td>" + e.id + "</td><td>" + e.name + "</td><td>" + e.tel + "<td data-id=\"" + e.id + "\" class=\"del\">删除</td>\n" +
+                    "<td data-ID=\"" + e.id + "\" data-NAME=\"" + e.name + "\" data-TEL=\"" + e.tel + "\" class=\"up\">修改\n" +
+                    "</td>\n</tr>");
+            });
+            regEvent();
+        });
+    }
+
+    function add() {
+        $.post("/contact",
+            {
+                name: $("#name").val(),
+                tel: $("#tel").val()
+            },
+            function (data) {
+                if (data.status === 200) {
+                    load();
+                } else {
+                    alert(data.msg);
+                }
+            });
+    }
+
+    function up() {
+        var name = $("#name").val();
+        var tel = $("#tel").val();
+        $.ajax({
+            type: "PATCH",
+            url: "/contact",
+            data: "name=" + name + "&tel=" + tel + "&id=" + ID,
+            success: function () {
+                load();
+            },
+            statusCode: {
+                404: function () {
+                    alert('id not found');
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
