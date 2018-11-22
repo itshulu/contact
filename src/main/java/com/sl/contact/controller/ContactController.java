@@ -7,10 +7,12 @@ import com.sl.contact.service.ContactService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -46,29 +48,32 @@ public class ContactController {
     public JsonMsg save(Contact contact) {
         logger.debug("save One Contact");
         try {
+            contact.setId(UUID.randomUUID().toString().replace("-", ""));
             contactService.saveContact(contact);
             return new JsonMsg(contact, "add success", 200);
         } catch (Exception e) {
             return new JsonMsg(null, e.getMessage(), 404);
         }
     }
+
     @PatchMapping("/contact")
-    public void updateContact(Contact contact, HttpServletResponse response){
+    public void updateContact(Contact contact, HttpServletResponse response) {
         try {
             contactService.updateContact(contact);
             logger.debug("update One Contact success");
         } catch (NullIdException e) {
-            logger.debug("update fail:"+e.getMessage());
+            logger.debug("update fail:" + e.getMessage());
             response.setStatus(404);
         }
     }
+
     @DeleteMapping("/contact/{id}")
-    public void  del(@PathVariable String id, HttpServletResponse response){
+    public void del(@PathVariable String id, HttpServletResponse response) {
         try {
             contactService.delContact(id);
             logger.debug("delete success");
         } catch (NullIdException e) {
-            logger.debug("delete fail:"+e.getMessage());
+            logger.debug("delete fail:" + e.getMessage());
             response.setStatus(404);
         }
     }

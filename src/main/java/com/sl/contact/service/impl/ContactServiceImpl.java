@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * @author 舒露
  */
-@Service
+//@Service
 public class ContactServiceImpl implements ContactService {
     private static final String NAME = "name";
     private static final Logger logger = LoggerFactory.getLogger(ContactServiceImpl.class);
@@ -36,7 +36,7 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public void saveContact(Contact contact) {
+    public Contact saveContact(Contact contact) {
         if (contact == null) {
             logger.debug("Contact Null");
             throw new NullPointerException("传入数据有误！！！");
@@ -44,7 +44,7 @@ public class ContactServiceImpl implements ContactService {
         contact.setId(UUID.randomUUID().toString().replace("-", ""));
         jedis.hset("contact:" + contact.getId(), NAME, contact.getName());
         jedis.hset("contact:" + contact.getId(), TEL, contact.getTel());
-        contactDao.save(contact);
+        return contactDao.save(contact);
     }
 
     @Override
@@ -58,14 +58,14 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public void updateContact(Contact contact) throws NullIdException {
+    public Contact updateContact(Contact contact) throws NullIdException {
         if (contact == null || StringUtils.isBlank(contact.getId()) || !contactDao.existsById(contact.getId())) {
             logger.debug("Contact Null");
             throw new NullIdException("传入数据有误！！！");
         }
         jedis.hset("contact:" + contact.getId(), NAME, contact.getName());
         jedis.hset("contact:" + contact.getId(), TEL, contact.getTel());
-        contactDao.save(contact);
+        return contactDao.save(contact);
     }
 
     @Override

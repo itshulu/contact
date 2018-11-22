@@ -15,7 +15,7 @@ public interface ContactService {
      *
      * @param contact 联系人
      */
-    void saveContact(Contact contact);
+    Contact saveContact(Contact contact) throws NullIdException;
 
     /**
      * 删除contact
@@ -32,7 +32,7 @@ public interface ContactService {
      * @param contact 联系人
      * @throws NullIdException id不存在时抛出异常
      */
-    void updateContact(Contact contact) throws NullIdException;
+    Contact updateContact(Contact contact) throws NullIdException;
 
     /**
      * 根据id查contact
